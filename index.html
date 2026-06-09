@@ -102,6 +102,33 @@
   .pedido-notas-input::placeholder { color: rgba(255,255,255,0.35); }
   .pedido-notas-input:focus { border-color: var(--amarillo); }
 
+  .pedido-opciones-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .pedido-opcion {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .pedido-opcion.full { grid-column: 1 / -1; }
+  .pedido-opcion label {
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: rgba(255,255,255,0.72);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .pedido-campo {
+    width: 100%; background: rgba(255,255,255,0.1); border: 1.5px solid rgba(255,255,255,0.2);
+    border-radius: 8px; padding: 7px 10px; color: white; font-family: 'Nunito', sans-serif;
+    font-weight: 700; font-size: 0.82rem; outline: none; transition: border 0.2s;
+  }
+  .pedido-campo::placeholder { color: rgba(255,255,255,0.35); }
+  .pedido-campo:focus { border-color: var(--amarillo); }
+
   .carrito-items { flex: 1; overflow-y: auto; padding: 10px 12px; }
   .carrito-items::-webkit-scrollbar { width: 4px; }
   .carrito-items::-webkit-scrollbar-thumb { background: var(--gris2); border-radius: 2px; }
@@ -189,6 +216,11 @@
   .pedido-items-list { font-size: 0.8rem; color: #555; margin-bottom: 9px; line-height: 1.65; }
   .pedido-notas { background: white; border-radius: 8px; padding: 7px 9px; font-size: 0.76rem; color: #666; margin-bottom: 9px; line-height: 1.5; }
   .pedido-notas strong { color: var(--azul); }
+  .pedido-datos {
+    background: white; border-radius: 8px; padding: 7px 9px; font-size: 0.76rem; color: #666;
+    margin-bottom: 9px; line-height: 1.5; display: grid; gap: 3px;
+  }
+  .pedido-datos strong { color: var(--azul); }
 
   /* EDICIÓN INLINE */
   .pedido-edit-section { background: white; border-radius: 9px; padding: 10px 11px; margin-bottom: 9px; display: none; }
@@ -276,6 +308,10 @@
     body.carrito-mobile-open { overflow: hidden; }
   }
 
+  @media (max-width: 700px) {
+    .pedido-opciones-grid { grid-template-columns: 1fr; }
+  }
+
   /* SPINNER */
   .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; }
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -312,6 +348,26 @@
       </div>
       <div class="pedido-notas-wrap">
         <textarea class="pedido-notas-input" id="notas-pedido" placeholder="Notas del pedido (opcional). Ej: sin cebolla, salsa aparte" maxlength="160"></textarea>
+      </div>
+      <div class="pedido-opciones-grid">
+        <div class="pedido-opcion">
+          <label for="telefono-cliente">Teléfono (opcional)</label>
+          <input class="pedido-campo" id="telefono-cliente" type="tel" placeholder="Ej: 300 123 4567" maxlength="20"/>
+        </div>
+        <div class="pedido-opcion">
+          <label for="direccion-cliente">Dirección (opcional)</label>
+          <input class="pedido-campo" id="direccion-cliente" type="text" placeholder="Ej: Barrio Cuba, Pereira" maxlength="100"/>
+        </div>
+        <div class="pedido-opcion full">
+          <label for="metodo-pago">Método de pago (opcional)</label>
+          <select class="pedido-campo" id="metodo-pago">
+            <option value="">Sin especificar</option>
+            <option value="Efectivo">Efectivo</option>
+            <option value="Transferencia">Transferencia</option>
+            <option value="Nequi">Nequi</option>
+            <option value="Daviplata">Daviplata</option>
+          </select>
+        </div>
       </div>
     </div>
     <div class="carrito-items" id="carrito-items">
@@ -374,7 +430,12 @@
 <div class="toast" id="toast"></div>
 
 <script>
+  window.GOOGLE_SHEETS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzX0IMuV_RmnXsRK_dSdTwibxAzWA1Ql-_e3DOVdq6GKGiV3ocf12MPOcB5zeDRu-K1/exec";
+</script>
+
+<script>
 const API = window.location.origin + '/api';
+const GOOGLE_SHEETS_WEBAPP_URL = window.GOOGLE_SHEETS_WEBAPP_URL?.trim() || '';
 const MOBILE_BREAKPOINT = 900;
 
 const MENU = [
@@ -432,8 +493,87 @@ const cartFab = document.getElementById('cartFab');
 const cartFabCount = document.getElementById('cartFabCount');
 const cartFabTotal = document.getElementById('cartFabTotal');
 const cartBackdrop = document.getElementById('cartBackdrop');
+const telefonoClienteInput = document.getElementById('telefono-cliente');
+const direccionClienteInput = document.getElementById('direccion-cliente');
+const metodoPagoSelect = document.getElementById('metodo-pago');
 
 const fmt = n => '$' + n.toLocaleString('es-CO');
+
+function fechaHoy() {
+  const h = new Date();
+  return `${String(h.getDate()).padStart(2,'0')}/${String(h.getMonth()+1).padStart(2,'0')}/${h.getFullYear()}`;
+}
+
+function leerDatosPedido() {
+  return {
+    cliente: document.getElementById('nombre-cliente').value.trim() || null,
+    telefono: telefonoClienteInput?.value.trim() || null,
+    direccion: direccionClienteInput?.value.trim() || null,
+    metodoPago: metodoPagoSelect?.value.trim() || null,
+    notas: document.getElementById('notas-pedido').value.trim() || null,
+  };
+}
+
+function limpiarCamposPedido() {
+  document.getElementById('nombre-cliente').value = '';
+  if (telefonoClienteInput) telefonoClienteInput.value = '';
+  if (direccionClienteInput) direccionClienteInput.value = '';
+  if (metodoPagoSelect) metodoPagoSelect.value = '';
+  document.getElementById('notas-pedido').value = '';
+  document.getElementById('pago-input').value = '';
+}
+
+function resumenItems(items) {
+  return items.map(i => `${i.qty}x ${i.nombre}`).join(' | ');
+}
+
+function estadoParaSheets(pedido, accion = 'upsert') {
+  if (accion === 'delete') return 'Cancelado';
+  if (accion === 'delivered') return 'Entregado';
+  if (pedido.entregado) return 'Entregado';
+  if (accion === 'update') return pedido.estado || 'Editado';
+  return pedido.estado || 'Nuevo';
+}
+
+function enviarPedidoASheets(pedido, accion = 'upsert') {
+  if (!GOOGLE_SHEETS_WEBAPP_URL) return false;
+
+  const payload = new URLSearchParams({
+    accion,
+    pedidoKey: String(pedido.numero ?? pedido.id ?? ''),
+    numero: String(pedido.numero ?? ''),
+    idLocal: String(pedido.id ?? ''),
+    cliente: pedido.cliente || '',
+    telefono: pedido.telefono || '',
+    direccion: pedido.direccion || '',
+    metodoPago: pedido.metodoPago || '',
+    notas: pedido.notas || '',
+    items: JSON.stringify(pedido.items || []),
+    itemsResumen: resumenItems(pedido.items || []),
+    total: String(pedido.total ?? 0),
+    hora: pedido.hora || '',
+    fecha: pedido.fecha || fechaHoy(),
+    entregado: pedido.entregado ? 'true' : 'false',
+    estado: estadoParaSheets(pedido, accion),
+  });
+
+  if (navigator.sendBeacon) {
+    const queued = navigator.sendBeacon(
+      GOOGLE_SHEETS_WEBAPP_URL,
+      new Blob([payload.toString()], { type: 'application/x-www-form-urlencoded;charset=UTF-8' })
+    );
+
+    if (queued) return true;
+  }
+
+  void fetch(GOOGLE_SHEETS_WEBAPP_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    body: payload,
+  }).catch(() => {});
+
+  return true;
+}
 
 function esVistaMovil() {
   return window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`).matches;
@@ -535,9 +675,7 @@ function cambiarQty(id, delta) {
 }
 function limpiarCarrito() {
   carrito = {};
-  document.getElementById('nombre-cliente').value = '';
-  document.getElementById('notas-pedido').value = '';
-  document.getElementById('pago-input').value = '';
+  limpiarCamposPedido();
   calcularCambio(); actualizarUI();
 }
 function calcTotal() { return Object.values(carrito).reduce((s,i)=>s+i.precio*i.qty,0); }
@@ -596,36 +734,50 @@ async function confirmarPedido() {
   if (!items.length) { mostrarToast('⚠️ El carrito está vacío'); return; }
   pedidoCount++;
   const total = calcTotal();
-  const nombre = document.getElementById('nombre-cliente').value.trim();
-  const notas = document.getElementById('notas-pedido').value.trim();
+  const datosPedido = leerDatosPedido();
   const hora = new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
-  const payload = { numero: pedidoCount, cliente: nombre||null, notas: notas||null, items: items.map(i=>({...i})), total, hora };
+  const fecha = fechaHoy();
+  const payload = {
+    numero: pedidoCount,
+    ...datosPedido,
+    items: items.map(i=>({...i})),
+    total,
+    hora,
+    fecha,
+    entregado: false,
+    estado: 'Nuevo'
+  };
 
   const btn = document.getElementById('btn-guardar');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> Guardando...';
+
+  let pedidoGuardado = { ...payload, id: Date.now() };
 
   if (servidorOK) {
     try {
       const r = await fetch(`${API}/pedidos`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
       if (r.ok) {
         const nuevo = await r.json();
-        pedidos.unshift(nuevo);
+        pedidoGuardado = { ...payload, ...nuevo, estado: 'Nuevo' };
+        pedidos.unshift(pedidoGuardado);
         mostrarToast(`✅ Pedido #${pedidoCount} guardado en SQLite`);
       } else throw new Error();
     } catch {
-      pedidos.unshift({...payload, id: Date.now(), entregado: false});
+      pedidoGuardado = { ...payload, id: Date.now() };
+      pedidos.unshift(pedidoGuardado);
       mostrarToast(`⚠️ Guardado en memoria (sin servidor)`);
     }
   } else {
-    pedidos.unshift({...payload, id: Date.now(), entregado: false});
+    pedidoGuardado = { ...payload, id: Date.now() };
+    pedidos.unshift(pedidoGuardado);
     mostrarToast(`✅ Pedido #${pedidoCount} guardado`);
   }
 
+  enviarPedidoASheets(pedidoGuardado, 'upsert');
+
   carrito={};
-  document.getElementById('nombre-cliente').value='';
-  document.getElementById('notas-pedido').value='';
-  document.getElementById('pago-input').value='';
+  limpiarCamposPedido();
   calcularCambio(); actualizarUI(); actualizarStatusBar();
   if (esVistaMovil()) toggleCarritoMobile(false);
   btn.disabled=false; btn.innerHTML='✅ Guardar pedido';
@@ -674,6 +826,12 @@ function renderPedidos() {
       </div>
       <div class="pedido-items-list" id="plist-${p.id}">${listaItems}</div>
       ${p.notas ? `<div class="pedido-notas"><strong>📝 Notas:</strong> ${p.notas}</div>` : ''}
+      ${(p.telefono || p.direccion || p.metodoPago) ? `
+        <div class="pedido-datos">
+          ${p.telefono ? `<div><strong>📞 Teléfono:</strong> ${p.telefono}</div>` : ''}
+          ${p.direccion ? `<div><strong>📍 Dirección:</strong> ${p.direccion}</div>` : ''}
+          ${p.metodoPago ? `<div><strong>💳 Pago:</strong> ${p.metodoPago}</div>` : ''}
+        </div>` : ''}
       <div class="pedido-edit-section ${estaEditando?'visible':''}" id="edit-sec-${p.id}">
         <div class="edit-titulo">✏️ Editar productos</div>
         <div id="edit-items-${p.id}"></div>
@@ -720,7 +878,8 @@ async function editQty(pedidoId, prodId, delta) {
   item.qty+=delta;
   if(item.qty<=0) p.items=p.items.filter(i=>i.id!==prodId);
   recalc(p);
-  await sincPedido(p);
+  p.estado = p.entregado ? 'Entregado' : 'Editado';
+  await sincPedido(p, 'update');
   renderEditItems(p);
   const el=document.getElementById('plist-'+pedidoId); if(el)el.textContent=p.items.map(i=>`${i.qty}× ${i.nombre}`).join(' · ');
   const te=document.getElementById('ptotal-'+pedidoId); if(te)te.textContent=fmt(p.total);
@@ -732,7 +891,8 @@ async function agregarAPedido(pedidoId, prod) {
   const ex=p.items.find(i=>i.id===prod.id);
   ex?ex.qty++:p.items.push({...prod,qty:1});
   recalc(p);
-  await sincPedido(p);
+  p.estado = p.entregado ? 'Entregado' : 'Editado';
+  await sincPedido(p, 'update');
   renderEditItems(p);
   const el=document.getElementById('plist-'+pedidoId); if(el)el.textContent=p.items.map(i=>`${i.qty}× ${i.nombre}`).join(' · ');
   const te=document.getElementById('ptotal-'+pedidoId); if(te)te.textContent=fmt(p.total);
@@ -743,10 +903,12 @@ async function agregarAPedido(pedidoId, prod) {
 
 function recalc(p) { p.total=p.items.reduce((s,i)=>s+i.precio*i.qty,0); }
 
-async function sincPedido(p) {
-  if(!servidorOK||!p.id) return;
-  try { await fetch(`${API}/pedidos/${p.id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:p.items,total:p.total})}); }
-  catch {}
+async function sincPedido(p, accion = 'update') {
+  if(servidorOK&&p.id) {
+    try { await fetch(`${API}/pedidos/${p.id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:p.items,total:p.total,entregado:p.entregado,cliente:p.cliente,notas:p.notas})}); }
+    catch {}
+  }
+  enviarPedidoASheets(p, accion);
 }
 
 function filtrarEdit(pedidoId) {
@@ -766,12 +928,20 @@ function filtrarEdit(pedidoId) {
 
 async function marcarEntregado(id) {
   const p=pedidos.find(x=>x.id===id); if(!p)return;
-  p.entregado=true; if(editandoId===id)editandoId=null;
+  p.entregado=true;
+  p.estado='Entregado';
+  if(editandoId===id)editandoId=null;
   if(servidorOK) try { await fetch(`${API}/pedidos/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({entregado:true})}); } catch {}
+  enviarPedidoASheets(p, 'delivered');
   actualizarStatusBar(); renderPedidos();
 }
 
 async function eliminarPedido(id) {
+  const p = pedidos.find(x=>x.id===id);
+  if (p) {
+    p.estado = 'Cancelado';
+    enviarPedidoASheets(p, 'delete');
+  }
   pedidos=pedidos.filter(x=>x.id!==id); if(editandoId===id)editandoId=null;
   if(servidorOK) try { await fetch(`${API}/pedidos/${id}`,{method:'DELETE'}); } catch {}
   actualizarStatusBar(); renderPedidos();
@@ -814,6 +984,12 @@ async function cargarHistorial() {
         <div class="pedido-hora">🕐 ${p.hora}</div>
         <div class="pedido-items-list">${p.items.map(i=>`${i.qty}× ${i.nombre}`).join(' · ')}</div>
         ${p.notas ? `<div class="pedido-notas"><strong>📝 Notas:</strong> ${p.notas}</div>` : ''}
+        ${(p.telefono || p.direccion || p.metodoPago) ? `
+          <div class="pedido-datos">
+            ${p.telefono ? `<div><strong>📞 Teléfono:</strong> ${p.telefono}</div>` : ''}
+            ${p.direccion ? `<div><strong>📍 Dirección:</strong> ${p.direccion}</div>` : ''}
+            ${p.metodoPago ? `<div><strong>💳 Pago:</strong> ${p.metodoPago}</div>` : ''}
+          </div>` : ''}
         <div class="pedido-total-row"><div class="pedido-total">${fmt(p.total)}</div>${p.entregado?'<span class="tag-entregado">✓ Entregado</span>':''}</div>`;
       listEl.appendChild(card);
     });

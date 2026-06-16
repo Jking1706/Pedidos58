@@ -24,6 +24,14 @@ const HEADERS = [
 ];
 
 function doPost(e) {
+  console.log('--- NUEVA PETICIÓN RECIBIDA ---');
+  console.log('Contexto:', JSON.stringify((e && e.parameter) || {}));
+  if (e && e.postData && e.postData.contents) {
+    console.log('Contenido POST:', e.postData.contents);
+  } else {
+    console.log('No hay contenido POST (e.postData está vacío)');
+  }
+
   try {
     const rawData = parsePayload_(e);
     const data = normalizePayload_(rawData);

@@ -431,6 +431,7 @@
 
 <script>
 const API = window.location.origin + '/api';
+const GOOGLE_SHEETS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycby_yOWPkb-MKfH6OwCCZoWNdmxftUwzd-DCciOIGYWxIwUVkdPWmPVLAToR-PcdgwYI/exec';
 const MOBILE_BREAKPOINT = 900;
 
 const MENU = [
@@ -550,35 +551,24 @@ function enviarPedidoASheets(pedido, accion = 'upsert') {
     estado: estadoParaSheets(pedido, accion),
   };
 
-  return fetch(`${API}/google-sheets`, {
+  const params = new URLSearchParams();
+  for (const key in datos) {
+    params.append(key, datos[key]);
+  }
+
+  console.log('[Sheets sync] enviando:', datos);
+
+  return fetch(GOOGLE_SHEETS_WEBAPP_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(datos),
+    mode: 'no-cors',
+    body: params,
   })
-    .then(async (response) => {
-      const text = await response.text();
-      let data;
-
-      try {
-        data = text ? JSON.parse(text) : {};
-      } catch {
-        data = { raw: text };
-      }
-
-      if (!response.ok || data.ok === false) {
-        console.error('[Sheets sync] respuesta no exitosa:', {
-          status: response.status,
-          statusText: response.statusText,
-          data
-        });
-        return false;
-      }
-
-      console.log('[Sheets sync] pedido sincronizado:', data);
+    .then(() => {
+      console.log('[Sheets sync] Solicitud enviada (tipo fire-and-forget)');
       return true;
     })
     .catch((error) => {
-      console.error('[Sheets sync] error de red o CORS:', error);
+      console.error('[Sheets sync] Error de red:', error);
       return false;
     });
 }

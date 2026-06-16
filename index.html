@@ -430,12 +430,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  window.GOOGLE_SHEETS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzX0IMuV_RmnXsRK_dSdTwibxAzWA1Ql-_e3DOVdq6GKGiV3ocf12MPOcB5zeDRu-K1/exec";
-</script>
-
-<script>
 const API = window.location.origin + '/api';
-const GOOGLE_SHEETS_WEBAPP_URL = window.GOOGLE_SHEETS_WEBAPP_URL?.trim() || '';
 const MOBILE_BREAKPOINT = 900;
 
 const MENU = [
@@ -536,9 +531,7 @@ function estadoParaSheets(pedido, accion = 'upsert') {
 }
 
 function enviarPedidoASheets(pedido, accion = 'upsert') {
-  if (!GOOGLE_SHEETS_WEBAPP_URL) return false;
-
-  const payload = new URLSearchParams({
+  const datos = {
     accion,
     pedidoKey: String(pedido.numero ?? pedido.id ?? ''),
     numero: String(pedido.numero ?? ''),
@@ -555,24 +548,39 @@ function enviarPedidoASheets(pedido, accion = 'upsert') {
     fecha: pedido.fecha || fechaHoy(),
     entregado: pedido.entregado ? 'true' : 'false',
     estado: estadoParaSheets(pedido, accion),
-  });
+  };
 
-  if (navigator.sendBeacon) {
-    const queued = navigator.sendBeacon(
-      GOOGLE_SHEETS_WEBAPP_URL,
-      new Blob([payload.toString()], { type: 'application/x-www-form-urlencoded;charset=UTF-8' })
-    );
-
-    if (queued) return true;
-  }
-
-  void fetch(GOOGLE_SHEETS_WEBAPP_URL, {
+  return fetch(`${API}/google-sheets`, {
     method: 'POST',
-    mode: 'no-cors',
-    body: payload,
-  }).catch(() => {});
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(datos),
+  })
+    .then(async (response) => {
+      const text = await response.text();
+      let data;
 
-  return true;
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        data = { raw: text };
+      }
+
+      if (!response.ok || data.ok === false) {
+        console.error('[Sheets sync] respuesta no exitosa:', {
+          status: response.status,
+          statusText: response.statusText,
+          data
+        });
+        return false;
+      }
+
+      console.log('[Sheets sync] pedido sincronizado:', data);
+      return true;
+    })
+    .catch((error) => {
+      console.error('[Sheets sync] error de red o CORS:', error);
+      return false;
+    });
 }
 
 function esVistaMovil() {

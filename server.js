@@ -4,6 +4,7 @@ const path = require('path');
 const { Pool } = require('pg');
 
 const PORT = process.env.PORT || 3000;
+const GOOGLE_SHEETS_WEBAPP_URL = process.env.GOOGLE_SHEETS_WEBAPP_URL || 'https://script.google.com/macros/s/AKfycbyoXwcOzOOwGGLLAr3u8be5VJrU-cTP0rwoGctHbbyaezWv9ZSBfN-cTjHjySdwCTZJ/exec';
 
 // Railway inyecta DATABASE_URL automáticamente
 const pool = new Pool({
@@ -138,6 +139,43 @@ async function startServer() {
         'SELECT COUNT(*) as n FROM pedidos WHERE fecha=$1 AND entregado=TRUE', [fecha]
       );
       jsonResponse(res, 200, { fecha, ...t.rows[0], entregados: parseInt(e.rows[0].n) });
+      return;
+    }
+
+    // POST /api/google-sheets
+    if (method === 'POST' && pathname === '/api/google-sheets') {
+      if (!GOOGLE_SHEETS_WEBAPP_URL) {
+        jsonResponse(res, 500, { ok: false, error: 'GOOGLE_SHEETS_WEBAPP_URL no configurada' });
+        return;
+      }
+
+      const payload = await readBody(req);
+      try {
+        const upstream = await fetch(GOOGLE_SHEETS_WEBAPP_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload),
+        });
+
+        const text = await upstream.text();
+        let data;
+
+        try {
+          data = text ? JSON.parse(text) : {};
+        } catch {
+          data = { raw: text };
+        }
+
+        jsonResponse(res, upstream.ok ? 200 : 502, {
+          ok: upstream.ok && data.ok !== false,
+          upstreamStatus: upstream.status,
+          ...data,
+        });
+      } catch (error) {
+        jsonResponse(res, 502, { ok: false, error: error.message });
+      }
       return;
     }
 

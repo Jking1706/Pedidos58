@@ -1,9 +1,9 @@
 // Apps Script para registrar pedidos de Sabor +58 en Google Sheets.
 // 1. Pega este archivo en un proyecto de Apps Script vinculado a una hoja.
 // 2. Despliega como Web app.
-// 3. Copia la URL en `window.GOOGLE_SHEETS_WEBAPP_URL` dentro de `index.html`.
+// 3. Si usas un backend proxy, configura la URL del Web App en `GOOGLE_SHEETS_WEBAPP_URL` del servidor.
 
-const SHEET_NAME = 'Pedidos';
+const SHEET_NAME = 'Pedidos_58';
 const TIME_ZONE = 'America/Bogota';
 const HEADERS = [
   'Fecha',
@@ -25,9 +25,13 @@ const HEADERS = [
 
 function doPost(e) {
   try {
-    const data = parsePayload_(e);
+    const rawData = parsePayload_(e);
+    const data = normalizePayload_(rawData);
     const sheet = getOrdersSheet_();
     ensureHeaderRow_(sheet);
+
+    console.log('doPost raw keys: ' + Object.keys(rawData).join(', '));
+    console.log('doPost normalized keys: ' + Object.keys(data).join(', '));
 
     const pedidoKey = String(data.pedidoKey || data.numero || data.idLocal || '').trim();
     if (!pedidoKey) {
@@ -66,6 +70,154 @@ function ensureHeaderRow_(sheet) {
   if (sheet.getLastRow() === 0) {
     sheet.appendRow(HEADERS);
   }
+}
+
+function normalizePayload_(data) {
+  const itemsSource = pick_(
+    data.items,
+    data.itemsJson,
+    data.itemsJSON,
+    data.productosItems,
+    data.productos,
+    data.producto
+  );
+
+  const parsedItems = parseItems_(itemsSource);
+  const itemsResumen = firstText_(
+    data.itemsResumen,
+    data.productosResumen,
+    data.productos,
+    data.producto,
+    summarizeItems_(parsedItems)
+  );
+
+  return {
+    pedidoKey: firstText_(data.pedidoKey, data.pedido_id, data.pedidoId, data.orderId, data.numero, data.idLocal, data.id),
+    numero: firstText_(data.numero, data.orderNumber, data.nro),
+    idLocal: firstText_(data.idLocal, data.id, data.pedidoId, data.orderId),
+    accion: firstText_(data.accion, data.action, data.operacion),
+    cliente: firstText_(data.cliente, data.nombre, data.customerName, data.name),
+    telefono: firstText_(data.telefono, data.phone, data.tel, data.customerPhone),
+    direccion: firstText_(data.direccion, data.address, data.customerAddress),
+    metodoPago: firstText_(data.metodoPago, data.metodo_pago, data.paymentMethod, data.payment, data.metodo, data.pago),
+    notas: firstText_(data.notas, data.notes, data.note, data.observaciones, data.comentarios),
+    itemsResumen: firstText_(itemsResumen),
+    items: normalizeItemsJson_(itemsSource),
+    total: Number(pick_(data.total, data.amount, data.monto, 0) || 0),
+    hora: firstText_(data.hora, data.time),
+    fecha: firstText_(data.fecha, data.date, formatToday_()),
+    entregado: toBoolean_(data.entregado) || toBoolean_(data.delivered) || toBoolean_(data.isDelivered) || String(data.estado || '').trim() === 'Entregado',
+    estado: firstText_(data.estado, data.status)
+  };
+}
+
+function firstText_() {
+  for (let index = 0; index < arguments.length; index += 1) {
+    const text = stringifyValue_(arguments[index]);
+    if (text) {
+      return text;
+    }
+  }
+
+  return '';
+}
+
+function stringifyValue_(value) {
+  if (value === undefined || value === null) {
+    return '';
+  }
+
+  if (Array.isArray(value)) {
+    return summarizeItems_(value) || JSON.stringify(value);
+  }
+
+  if (typeof value === 'object') {
+    return JSON.stringify(value);
+  }
+
+  const text = String(value).trim();
+  return text;
+}
+
+function parseItems_(value) {
+  if (Array.isArray(value)) {
+    return value;
+  }
+
+  if (value && typeof value === 'object') {
+    return [value];
+  }
+
+  const text = String(value || '').trim();
+  if (!text) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(text);
+    if (Array.isArray(parsed)) {
+      return parsed;
+    }
+  } catch (error) {
+    // Si no es JSON válido, devolvemos vacío y usamos el texto original como resumen.
+  }
+
+  return [];
+}
+
+function summarizeItems_(items) {
+  if (!Array.isArray(items) || items.length === 0) {
+    return '';
+  }
+
+  return items.map((item) => {
+    if (!item || typeof item !== 'object') {
+      return String(item);
+    }
+
+    const qty = Number(item.qty || item.cantidad || 1);
+    const name = String(item.nombre || item.name || item.producto || item.titulo || 'Item').trim();
+    return `${qty}x ${name}`;
+  }).join(' | ');
+}
+
+function normalizeItemsJson_(value) {
+  if (Array.isArray(value)) {
+    return JSON.stringify(value);
+  }
+
+  if (value && typeof value === 'object') {
+    return JSON.stringify(value);
+  }
+
+  const text = String(value || '').trim();
+  if (!text) {
+    return '';
+  }
+
+  try {
+    const parsed = JSON.parse(text);
+    return JSON.stringify(parsed);
+  } catch (error) {
+    return text;
+  }
+}
+
+function pick_() {
+  for (let index = 0; index < arguments.length; index += 1) {
+    const value = arguments[index];
+    if (value === undefined || value === null) {
+      continue;
+    }
+
+    if (typeof value === 'string' && value.trim() === '') {
+      continue;
+    }
+
+    return value;
+  }
+
+  return '';
 }
 
 function findOrderRow_(sheet, pedidoKey) {

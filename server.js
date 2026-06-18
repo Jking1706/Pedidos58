@@ -4,7 +4,7 @@ const path = require('path');
 const { Pool } = require('pg');
 
 const PORT = process.env.PORT || 3000;
-const GOOGLE_SHEETS_WEBAPP_URL = process.env.GOOGLE_SHEETS_WEBAPP_URL || 'https://script.google.com/macros/s/AKfycbyoXwcOzOOwGGLLAr3u8be5VJrU-cTP0rwoGctHbbyaezWv9ZSBfN-cTjHjySdwCTZJ/exec';
+const GOOGLE_SHEETS_WEBAPP_URL = process.env.GOOGLE_SHEETS_WEBAPP_URL || 'https://script.google.com/macros/s/AKfycbz9A16Sue4gV8bMRzfIQWi9ChyKnzbxXbW1NyRCOwlWOyEOGJYRjOYi1OhIm-OR0-eB/exec';
 
 // Railway inyecta DATABASE_URL automáticamente
 const pool = new Pool({

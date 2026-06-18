@@ -4,6 +4,7 @@
 // 3. Si usas un backend proxy, configura la URL del Web App en `GOOGLE_SHEETS_WEBAPP_URL` del servidor.
 
 const SHEET_NAME = 'Pedidos_58';
+const GASTOS_SHEET_NAME = 'Gastos_58';
 const TIME_ZONE = 'America/Bogota';
 const HEADERS = [
   'Fecha',
@@ -23,6 +24,8 @@ const HEADERS = [
   'Entregado'
 ];
 
+const GASTOS_HEADERS = ['Fecha', 'Categoría', 'Descripción', 'Monto', 'Método de Pago', 'Hora'];
+
 function doPost(e) {
   console.log('--- NUEVA PETICIÓN RECIBIDA ---');
   console.log('Contexto:', JSON.stringify((e && e.parameter) || {}));
@@ -35,11 +38,22 @@ function doPost(e) {
   try {
     const rawData = parsePayload_(e);
     const data = normalizePayload_(rawData);
-    const sheet = getOrdersSheet_();
-    ensureHeaderRow_(sheet);
+    const tipoEntrada = String(data.tipoEntrada || 'pedido').trim().toLowerCase();
 
     console.log('doPost raw keys: ' + Object.keys(rawData).join(', '));
     console.log('doPost normalized keys: ' + Object.keys(data).join(', '));
+    console.log('tipoEntrada:', tipoEntrada);
+
+    if (tipoEntrada === 'gasto') {
+      const gastosSheet = getOrCreateSheet_(GASTOS_SHEET_NAME);
+      ensureHeaderRow_(gastosSheet, GASTOS_HEADERS);
+      gastosSheet.appendRow(buildGastoRowValues_(data));
+
+      return jsonResponse_({ ok: true, action: 'created', tipoEntrada: 'gasto', sheet: GASTOS_SHEET_NAME });
+    }
+
+    const sheet = getOrCreateSheet_(SHEET_NAME);
+    ensureHeaderRow_(sheet, HEADERS);
 
     const pedidoKey = String(data.pedidoKey || data.numero || data.idLocal || '').trim();
     if (!pedidoKey) {
@@ -65,22 +79,27 @@ function doGet() {
   return jsonResponse_({ ok: true, message: 'Sabor +58 Sheets webhook activo' });
 }
 
-function getOrdersSheet_() {
+function getOrCreateSheet_(sheetName) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   if (!ss) {
     throw new Error('Este script debe estar vinculado a una hoja de calculo.');
   }
 
-  return ss.getSheetByName(SHEET_NAME) || ss.insertSheet(SHEET_NAME);
+  return ss.getSheetByName(sheetName) || ss.insertSheet(sheetName);
 }
 
-function ensureHeaderRow_(sheet) {
+function getOrdersSheet_() {
+  return getOrCreateSheet_(SHEET_NAME);
+}
+
+function ensureHeaderRow_(sheet, headers) {
   if (sheet.getLastRow() === 0) {
-    sheet.appendRow(HEADERS);
+    sheet.appendRow(headers);
   }
 }
 
 function normalizePayload_(data) {
+  const amount = Number(pick_(data.total, data.monto, data.valor, data.precio, data.amount, 0) || 0);
   const itemsSource = pick_(
     data.items,
     data.itemsJson,
@@ -100,6 +119,7 @@ function normalizePayload_(data) {
   );
 
   return {
+    tipoEntrada: firstText_(data.tipoEntrada, data.tipo_entrada, data.entryType, data.type, 'pedido'),
     pedidoKey: firstText_(data.pedidoKey, data.pedido_id, data.pedidoId, data.orderId, data.numero, data.idLocal, data.id),
     numero: firstText_(data.numero, data.orderNumber, data.nro),
     idLocal: firstText_(data.idLocal, data.id, data.pedidoId, data.orderId),
@@ -108,10 +128,13 @@ function normalizePayload_(data) {
     telefono: firstText_(data.telefono, data.phone, data.tel, data.customerPhone),
     direccion: firstText_(data.direccion, data.address, data.customerAddress),
     metodoPago: firstText_(data.metodoPago, data.metodo_pago, data.paymentMethod, data.payment, data.metodo, data.pago),
+    categoria: firstText_(data.categoria, data.category, data.categoriaGasto, data.tipoGasto, data.rubro),
+    descripcion: firstText_(data.descripcion, data.detalle, data.glosa, data.concepto, data.observacion, data.notas, data.notes, data.comentarios),
     notas: firstText_(data.notas, data.notes, data.note, data.observaciones, data.comentarios),
     itemsResumen: firstText_(itemsResumen),
     items: normalizeItemsJson_(itemsSource),
-    total: Number(pick_(data.total, data.amount, data.monto, 0) || 0),
+    total: amount,
+    monto: amount,
     hora: firstText_(data.hora, data.time),
     fecha: firstText_(data.fecha, data.date, formatToday_()),
     entregado: toBoolean_(data.entregado) || toBoolean_(data.delivered) || toBoolean_(data.isDelivered) || String(data.estado || '').trim() === 'Entregado',
@@ -266,6 +289,17 @@ function buildRowValues_(data, pedidoKey, row) {
     hora,
     estado,
     entregado
+  ];
+}
+
+function buildGastoRowValues_(data) {
+  return [
+    String(data.fecha || formatToday_()),
+    String(data.categoria || ''),
+    String(data.descripcion || data.notas || ''),
+    Number(data.total || 0),
+    String(data.metodoPago || ''),
+    String(data.hora || getTimeNow_())
   ];
 }
 

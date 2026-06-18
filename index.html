@@ -129,6 +129,36 @@
   .pedido-campo::placeholder { color: rgba(255,255,255,0.35); }
   .pedido-campo:focus { border-color: var(--amarillo); }
 
+  .gasto-card {
+    margin-top: 10px;
+    border: 1px solid rgba(255,255,255,0.16);
+    border-radius: 12px;
+    padding: 10px 11px;
+    background: rgba(255,255,255,0.04);
+  }
+  .gasto-card summary {
+    cursor: pointer;
+    list-style: none;
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: var(--azul);
+    letter-spacing: 0.3px;
+  }
+  .gasto-card summary::-webkit-details-marker { display: none; }
+  .gasto-grid {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 10px;
+  }
+  .gasto-grid .full { grid-column: 1 / -1; }
+  .gasto-btn {
+    width: 100%;
+    margin-top: 8px;
+    background: var(--azul);
+  }
+  .gasto-btn:hover { background: #00236b; }
+
   .carrito-items { flex: 1; overflow-y: auto; padding: 10px 12px; }
   .carrito-items::-webkit-scrollbar { width: 4px; }
   .carrito-items::-webkit-scrollbar-thumb { background: var(--gris2); border-radius: 2px; }
@@ -310,6 +340,7 @@
 
   @media (max-width: 700px) {
     .pedido-opciones-grid { grid-template-columns: 1fr; }
+    .gasto-grid { grid-template-columns: 1fr; }
   }
 
   /* SPINNER */
@@ -388,6 +419,25 @@
       </div>
       <button class="btn-confirmar" id="btn-guardar" onclick="confirmarPedido()">✅ Guardar pedido</button>
       <button class="btn-limpiar" onclick="limpiarCarrito()">✕ Limpiar carrito</button>
+
+      <details class="gasto-card">
+        <summary>💸 Registrar gasto</summary>
+        <div class="gasto-grid">
+          <input class="pedido-campo" id="gasto-categoria" type="text" placeholder="Categoría del gasto" maxlength="40"/>
+          <input class="pedido-campo" id="gasto-descripcion" type="text" placeholder="Descripción del gasto" maxlength="120"/>
+          <input class="pedido-campo" id="gasto-monto" type="number" placeholder="Monto" min="0" step="1"/>
+          <select class="pedido-campo" id="gasto-metodo-pago">
+            <option value="">Método de pago</option>
+            <option value="Efectivo">Efectivo</option>
+            <option value="Transferencia">Transferencia</option>
+            <option value="Nequi">Nequi</option>
+            <option value="Daviplata">Daviplata</option>
+          </select>
+        </div>
+        <button class="btn-confirmar gasto-btn" id="btn-guardar-gasto" type="button" onclick="enviarGasto()">
+          ✅ Guardar gasto
+        </button>
+      </details>
     </div>
   </div>
 </div>
@@ -431,7 +481,7 @@
 
 <script>
 const API = window.location.origin + '/api';
-const GOOGLE_SHEETS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycby_yOWPkb-MKfH6OwCCZoWNdmxftUwzd-DCciOIGYWxIwUVkdPWmPVLAToR-PcdgwYI/exec';
+const GOOGLE_SHEETS_PROXY_URL = `${API}/google-sheets`;
 const MOBILE_BREAKPOINT = 900;
 
 const MENU = [
@@ -492,6 +542,11 @@ const cartBackdrop = document.getElementById('cartBackdrop');
 const telefonoClienteInput = document.getElementById('telefono-cliente');
 const direccionClienteInput = document.getElementById('direccion-cliente');
 const metodoPagoSelect = document.getElementById('metodo-pago');
+const gastoCategoriaInput = document.getElementById('gasto-categoria');
+const gastoDescripcionInput = document.getElementById('gasto-descripcion');
+const gastoMontoInput = document.getElementById('gasto-monto');
+const gastoMetodoPagoSelect = document.getElementById('gasto-metodo-pago');
+const gastoButton = document.getElementById('btn-guardar-gasto');
 
 const fmt = n => '$' + n.toLocaleString('es-CO');
 
@@ -531,6 +586,42 @@ function estadoParaSheets(pedido, accion = 'upsert') {
   return pedido.estado || 'Nuevo';
 }
 
+async function enviarAProxySheets(datos) {
+  console.log('[Sheets sync] enviando:', datos);
+
+  try {
+    const response = await fetch(GOOGLE_SHEETS_PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(datos),
+    });
+
+    const text = await response.text();
+    let payload;
+
+    try {
+      payload = text ? JSON.parse(text) : {};
+    } catch {
+      payload = { raw: text };
+    }
+
+    if (!response.ok || payload.ok === false) {
+      console.error('[Sheets sync] respuesta no exitosa:', {
+        status: response.status,
+        statusText: response.statusText,
+        payload
+      });
+      return { ok: false, response: payload };
+    }
+
+    console.log('[Sheets sync] respuesta:', payload);
+    return { ok: true, response: payload };
+  } catch (error) {
+    console.error('[Sheets sync] Error de red o CORS:', error);
+    return { ok: false, error: error.message };
+  }
+}
+
 function enviarPedidoASheets(pedido, accion = 'upsert') {
   const datos = {
     accion,
@@ -551,26 +642,56 @@ function enviarPedidoASheets(pedido, accion = 'upsert') {
     estado: estadoParaSheets(pedido, accion),
   };
 
-  const params = new URLSearchParams();
-  for (const key in datos) {
-    params.append(key, datos[key]);
+  return enviarAProxySheets(datos);
+}
+
+function limpiarCamposGasto() {
+  if (gastoCategoriaInput) gastoCategoriaInput.value = '';
+  if (gastoDescripcionInput) gastoDescripcionInput.value = '';
+  if (gastoMontoInput) gastoMontoInput.value = '';
+  if (gastoMetodoPagoSelect) gastoMetodoPagoSelect.value = '';
+}
+
+async function enviarGasto() {
+  const categoria = gastoCategoriaInput?.value.trim() || '';
+  const descripcion = gastoDescripcionInput?.value.trim() || '';
+  const monto = Number(gastoMontoInput?.value || 0);
+  const metodoPago = gastoMetodoPagoSelect?.value.trim() || '';
+
+  if (!categoria || !descripcion || !monto) {
+    mostrarToast('Completa categoría, descripción y monto del gasto');
+    return;
   }
 
-  console.log('[Sheets sync] enviando:', datos);
+  const datos = {
+    tipoEntrada: 'gasto',
+    categoria,
+    descripcion,
+    monto,
+    total: monto,
+    metodoPago,
+    fecha: fechaHoy(),
+    hora: new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }),
+  };
 
-  return fetch(GOOGLE_SHEETS_WEBAPP_URL, {
-    method: 'POST',
-    mode: 'no-cors',
-    body: params,
-  })
-    .then(() => {
-      console.log('[Sheets sync] Solicitud enviada (tipo fire-and-forget)');
-      return true;
-    })
-    .catch((error) => {
-      console.error('[Sheets sync] Error de red:', error);
-      return false;
-    });
+  if (gastoButton) {
+    gastoButton.disabled = true;
+    gastoButton.textContent = 'Guardando...';
+  }
+
+  const resultado = await enviarAProxySheets(datos);
+
+  if (resultado.ok) {
+    mostrarToast('✅ Gasto guardado');
+    limpiarCamposGasto();
+  } else {
+    mostrarToast('⚠️ No se pudo guardar el gasto');
+  }
+
+  if (gastoButton) {
+    gastoButton.disabled = false;
+    gastoButton.textContent = '✅ Guardar gasto';
+  }
 }
 
 function esVistaMovil() {
@@ -906,7 +1027,7 @@ async function sincPedido(p, accion = 'update') {
     try { await fetch(`${API}/pedidos/${p.id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:p.items,total:p.total,entregado:p.entregado,cliente:p.cliente,notas:p.notas})}); }
     catch {}
   }
-  enviarPedidoASheets(p, accion);
+  return enviarPedidoASheets(p, accion);
 }
 
 function filtrarEdit(pedidoId) {
@@ -930,7 +1051,7 @@ async function marcarEntregado(id) {
   p.estado='Entregado';
   if(editandoId===id)editandoId=null;
   if(servidorOK) try { await fetch(`${API}/pedidos/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({entregado:true})}); } catch {}
-  enviarPedidoASheets(p, 'delivered');
+  await enviarPedidoASheets(p, 'delivered');
   actualizarStatusBar(); renderPedidos();
 }
 
@@ -938,7 +1059,7 @@ async function eliminarPedido(id) {
   const p = pedidos.find(x=>x.id===id);
   if (p) {
     p.estado = 'Cancelado';
-    enviarPedidoASheets(p, 'delete');
+    await enviarPedidoASheets(p, 'delete');
   }
   pedidos=pedidos.filter(x=>x.id!==id); if(editandoId===id)editandoId=null;
   if(servidorOK) try { await fetch(`${API}/pedidos/${id}`,{method:'DELETE'}); } catch {}

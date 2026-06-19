@@ -56,6 +56,38 @@ function hoy() {
   return `${String(n.getDate()).padStart(2,'0')}/${String(n.getMonth()+1).padStart(2,'0')}/${n.getFullYear()}`;
 }
 
+async function proxyGoogleSheets(res, method, search = '', body = undefined) {
+  if (!GOOGLE_SHEETS_WEBAPP_URL) {
+    jsonResponse(res, 500, { ok: false, error: 'GOOGLE_SHEETS_WEBAPP_URL no configurada' });
+    return;
+  }
+
+  try {
+    const upstream = await fetch(`${GOOGLE_SHEETS_WEBAPP_URL}${search}`, {
+      method,
+      headers: body ? { 'Content-Type': 'application/json' } : undefined,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+
+    const text = await upstream.text();
+    let data;
+
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch {
+      data = { raw: text };
+    }
+
+    jsonResponse(res, upstream.ok ? 200 : 502, {
+      ok: upstream.ok && data.ok !== false,
+      upstreamStatus: upstream.status,
+      ...data,
+    });
+  } catch (error) {
+    jsonResponse(res, 502, { ok: false, error: error.message });
+  }
+}
+
 // ─── SERVIDOR ────────────────────────────────────────────────────
 async function startServer() {
   await iniciarDB();
@@ -142,40 +174,10 @@ async function startServer() {
       return;
     }
 
-    // POST /api/google-sheets
-    if (method === 'POST' && pathname === '/api/google-sheets') {
-      if (!GOOGLE_SHEETS_WEBAPP_URL) {
-        jsonResponse(res, 500, { ok: false, error: 'GOOGLE_SHEETS_WEBAPP_URL no configurada' });
-        return;
-      }
-
-      const payload = await readBody(req);
-      try {
-        const upstream = await fetch(GOOGLE_SHEETS_WEBAPP_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(payload),
-        });
-
-        const text = await upstream.text();
-        let data;
-
-        try {
-          data = text ? JSON.parse(text) : {};
-        } catch {
-          data = { raw: text };
-        }
-
-        jsonResponse(res, upstream.ok ? 200 : 502, {
-          ok: upstream.ok && data.ok !== false,
-          upstreamStatus: upstream.status,
-          ...data,
-        });
-      } catch (error) {
-        jsonResponse(res, 502, { ok: false, error: error.message });
-      }
+    // GET/POST /api/google-sheets
+    if ((method === 'GET' || method === 'POST') && pathname === '/api/google-sheets') {
+      const payload = method === 'POST' ? await readBody(req) : undefined;
+      await proxyGoogleSheets(res, method, url.search, payload);
       return;
     }
 

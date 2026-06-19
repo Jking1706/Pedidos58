@@ -15,9 +15,19 @@
   body { font-family: 'Nunito', sans-serif; background: var(--crema); min-height: 100vh; overflow-x: hidden; }
 
   header {
-    background: var(--negro); display: flex; align-items: center; justify-content: space-between;
-    padding: 0 24px; height: 64px; position: sticky; top: 0; z-index: 100;
+    background: var(--negro);
+    position: sticky;
+    top: 0;
+    z-index: 100;
     border-bottom: 4px solid var(--amarillo);
+  }
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0 24px;
+    min-height: 64px;
   }
   .logo { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--amarillo); letter-spacing: 2px; }
   .logo span { color: var(--rojo); }
@@ -31,6 +41,437 @@
   .btn-header.secundario { background: rgba(255,255,255,0.12); color: white; }
   .btn-header.secundario:hover { background: rgba(255,255,255,0.2); }
   .badge { background: var(--rojo); color: white; border-radius: 50%; width: 21px; height: 21px; font-size: 0.72rem; display: flex; align-items: center; justify-content: center; font-weight: 800; }
+
+  .app-tabs {
+    display: flex;
+    gap: 8px;
+    padding: 0 16px 12px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.03);
+  }
+  .app-tabs::-webkit-scrollbar { height: 4px; }
+  .app-tabs::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); border-radius: 999px; }
+  .app-tab {
+    flex: 0 0 auto;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 999px;
+    padding: 8px 14px;
+    background: rgba(255,255,255,0.06);
+    color: #fff;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 0.84rem;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.2s ease, color 0.2s ease;
+    white-space: nowrap;
+  }
+  .app-tab:hover { transform: translateY(-1px); }
+  .app-tab.is-active { background: var(--amarillo); color: var(--negro); border-color: transparent; }
+
+  .tab-panel { display: none; }
+  .tab-panel.is-active { display: block; }
+
+  .page-shell {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px 20px 24px;
+  }
+  .page-head { margin-bottom: 14px; }
+  .page-head h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.8rem;
+    letter-spacing: 1.5px;
+    color: var(--negro);
+  }
+  .page-head p { color: #555; font-weight: 600; }
+
+  .dashboard-card,
+  .gasto-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: var(--sombra);
+    padding: 16px;
+  }
+  .dashboard-frame {
+    width: 100%;
+    height: 600px;
+    border: 0;
+    border-radius: 12px;
+    background: #fff;
+  }
+
+  .gasto-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  .section-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .section-pill-gastos {
+    background: rgba(207, 23, 32, 0.1);
+    color: var(--rojo);
+  }
+  .gasto-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+    gap: 16px;
+    align-items: start;
+  }
+  .gasto-aside {
+    display: grid;
+    gap: 16px;
+  }
+  .gasto-layout-carrito { margin-top: 18px; }
+  .gasto-card {
+    border: 1px solid rgba(15, 15, 15, 0.08);
+    border-radius: 20px;
+    box-shadow: 0 18px 40px rgba(15, 15, 15, 0.08);
+    position: relative;
+    overflow: hidden;
+  }
+  .gasto-card::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 5px;
+    background: linear-gradient(90deg, var(--azul), #5b80d4 45%, var(--amarillo) 72%, var(--rojo));
+  }
+  .gasto-card > * { position: relative; }
+  .gasto-card-form { padding-top: 20px; }
+  .gasto-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .gasto-card-head h3,
+  .gasto-card-side h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.35rem;
+    letter-spacing: 1.2px;
+    color: var(--negro);
+    margin-bottom: 3px;
+  }
+  .gasto-card-head p,
+  .gasto-guide-item p,
+  .gasto-cart-hint {
+    color: #5b5347;
+    font-size: 0.92rem;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+  .gasto-sync-pill {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(0, 48, 135, 0.08);
+    color: var(--azul);
+    font-size: 0.76rem;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+  .gasto-sync-pill::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--verde);
+    box-shadow: 0 0 0 4px rgba(46, 204, 113, 0.12);
+  }
+  .gasto-guide-list { display: grid; gap: 10px; }
+  .gasto-guide-item {
+    padding: 12px;
+    border-radius: 14px;
+    background: rgba(0, 48, 135, 0.05);
+    border: 1px solid rgba(0, 48, 135, 0.07);
+  }
+  .gasto-guide-label {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--azul);
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+  }
+  .gasto-card-note { background: linear-gradient(180deg, #ffffff 0%, #fff3e8 100%); }
+  .gasto-tip-list {
+    list-style: none;
+    display: grid;
+    gap: 10px;
+    margin-top: 4px;
+  }
+  .gasto-tip-list li {
+    position: relative;
+    padding-left: 22px;
+    color: #5b5347;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+  .gasto-tip-list li::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    top: -1px;
+    color: var(--rojo);
+    font-size: 1.5rem;
+    line-height: 1;
+  }
+  .gasto-grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 2px;
+  }
+  .gasto-grid .full { grid-column: 1 / -1; }
+  .gasto-card .pedido-opcion label { color: #6a6255; }
+  .gasto-card .pedido-campo {
+    background: white;
+    color: var(--negro);
+    border: 1.5px solid #ded4c3;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  }
+  .gasto-card .pedido-campo::placeholder { color: #9a9182; }
+  .gasto-card .pedido-campo:focus {
+    border-color: var(--azul);
+    box-shadow: 0 0 0 4px rgba(0, 48, 135, 0.08);
+  }
+  .gasto-card .pedido-campo option { color: var(--negro); }
+  .gasto-card select.pedido-campo {
+    appearance: none;
+    background-image:
+      linear-gradient(45deg, transparent 50%, #6a6255 50%),
+      linear-gradient(135deg, #6a6255 50%, transparent 50%);
+    background-position:
+      calc(100% - 18px) calc(1em + 2px),
+      calc(100% - 13px) calc(1em + 2px);
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+    padding-right: 34px;
+  }
+  .gasto-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+  }
+  .gasto-actions .btn-confirmar,
+  .gasto-actions .btn-limpiar {
+    width: auto;
+    flex: 1 1 180px;
+    margin-bottom: 0;
+  }
+  .gasto-btn { background: var(--azul); }
+  .gasto-btn:hover { background: #00236b; }
+  .gasto-actions .btn-limpiar {
+    background: #fff;
+    border: 1px solid #e1d9c8;
+    color: var(--negro);
+  }
+  .gasto-actions .btn-limpiar:hover {
+    background: #f8f4ec;
+    color: var(--negro);
+  }
+  .gasto-catalog-toolbar {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .gasto-catalog-summary {
+    font-size: 0.82rem;
+    color: #6a6255;
+    font-weight: 700;
+  }
+  .gasto-productos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+  }
+  .gasto-producto-card {
+    border: 1px solid rgba(15, 15, 15, 0.08);
+    border-radius: 16px;
+    padding: 14px;
+    background: linear-gradient(180deg, #fff 0%, #fff9f0 100%);
+    box-shadow: 0 10px 22px rgba(15, 15, 15, 0.06);
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    cursor: pointer;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .gasto-producto-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--amarillo);
+    box-shadow: 0 16px 26px rgba(15, 15, 15, 0.09);
+  }
+  .gasto-producto-chip {
+    align-self: flex-start;
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: rgba(0, 48, 135, 0.08);
+    color: var(--azul);
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+  }
+  .gasto-producto-nombre { font-weight: 800; color: var(--negro); line-height: 1.2; font-size: 0.95rem; }
+  .gasto-producto-meta {
+    display: grid;
+    gap: 4px;
+    color: #6a6255;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+  .gasto-producto-precio {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.35rem;
+    color: var(--rojo);
+    letter-spacing: 1px;
+  }
+  .gasto-producto-cta {
+    margin-top: auto;
+    width: 100%;
+    border: none;
+    border-radius: 10px;
+    padding: 9px 12px;
+    background: var(--verde);
+    color: white;
+    font-weight: 800;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+    text-align: center;
+  }
+  .gasto-producto-cta:hover { background: #27ae60; }
+  .gasto-producto-cta:active { transform: scale(0.98); }
+  .gasto-productos-empty,
+  .gasto-cart-empty {
+    padding: 16px;
+    border-radius: 14px;
+    background: rgba(0, 48, 135, 0.05);
+    border: 1px dashed rgba(0, 48, 135, 0.18);
+    color: #5b5347;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-align: center;
+  }
+  .gasto-cart-hint {
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(46, 204, 113, 0.08);
+    color: #255d3d;
+  }
+  .gasto-cart-list { display: grid; gap: 12px; }
+  .gasto-cart-item {
+    background: white;
+    border: 1px solid rgba(15, 15, 15, 0.08);
+    border-radius: 16px;
+    padding: 12px;
+    box-shadow: 0 10px 20px rgba(15, 15, 15, 0.05);
+    display: grid;
+    gap: 10px;
+  }
+  .gasto-cart-item-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .gasto-cart-item-title { font-weight: 800; color: var(--negro); line-height: 1.25; }
+  .gasto-cart-item-meta { margin-top: 4px; color: #6a6255; font-size: 0.78rem; font-weight: 700; }
+  .gasto-cart-remove {
+    border: none;
+    background: rgba(207, 23, 32, 0.08);
+    color: var(--rojo);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-weight: 900;
+    flex: 0 0 auto;
+  }
+  .gasto-cart-controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .gasto-cart-control,
+  .gasto-cart-payment {
+    display: grid;
+    gap: 5px;
+  }
+  .gasto-cart-control label,
+  .gasto-cart-payment label {
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: #6a6255;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+  }
+  .gasto-cart-input {
+    width: 100%;
+    background: white;
+    color: var(--negro);
+    border: 1.5px solid #ded4c3;
+    border-radius: 8px;
+    padding: 7px 10px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 700;
+    outline: none;
+  }
+  .gasto-cart-input:focus {
+    border-color: var(--azul);
+    box-shadow: 0 0 0 4px rgba(0, 48, 135, 0.08);
+  }
+  .gasto-cart-total-box {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: linear-gradient(180deg, #0f0f0f 0%, #252525 100%);
+    color: white;
+  }
+  .gasto-cart-total-box span {
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: rgba(255, 255, 255, 0.7);
+  }
+  .gasto-cart-total-box strong {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.65rem;
+    letter-spacing: 1px;
+    color: var(--amarillo);
+  }
+  .gasto-actions-cart { margin-top: 12px; }
+  .gasto-actions-cart .btn-confirmar,
+  .gasto-actions-cart .btn-limpiar { flex: 1 1 0; }
 
   /* STATUS BAR */
   .status-bar {
@@ -128,36 +569,6 @@
   }
   .pedido-campo::placeholder { color: rgba(255,255,255,0.35); }
   .pedido-campo:focus { border-color: var(--amarillo); }
-
-  .gasto-card {
-    margin-top: 10px;
-    border: 1px solid rgba(255,255,255,0.16);
-    border-radius: 12px;
-    padding: 10px 11px;
-    background: rgba(255,255,255,0.04);
-  }
-  .gasto-card summary {
-    cursor: pointer;
-    list-style: none;
-    font-size: 0.82rem;
-    font-weight: 800;
-    color: var(--azul);
-    letter-spacing: 0.3px;
-  }
-  .gasto-card summary::-webkit-details-marker { display: none; }
-  .gasto-grid {
-    display: grid;
-    gap: 8px;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    margin-top: 10px;
-  }
-  .gasto-grid .full { grid-column: 1 / -1; }
-  .gasto-btn {
-    width: 100%;
-    margin-top: 8px;
-    background: var(--azul);
-  }
-  .gasto-btn:hover { background: #00236b; }
 
   .carrito-items { flex: 1; overflow-y: auto; padding: 10px 12px; }
   .carrito-items::-webkit-scrollbar { width: 4px; }
@@ -336,11 +747,22 @@
     .carrito-close-btn { display: inline-flex; }
     .cart-fab { display: inline-flex; }
     body.carrito-mobile-open { overflow: hidden; }
+    .gasto-head {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .gasto-layout {
+      grid-template-columns: 1fr;
+    }
   }
 
   @media (max-width: 700px) {
     .pedido-opciones-grid { grid-template-columns: 1fr; }
     .gasto-grid { grid-template-columns: 1fr; }
+    .gasto-actions { flex-direction: column; }
+    .gasto-actions-cart { flex-direction: column; }
+    .gasto-cart-controls { grid-template-columns: 1fr; }
+    .gasto-productos-grid { grid-template-columns: 1fr; }
   }
 
   /* SPINNER */
@@ -351,15 +773,23 @@
 <body>
 
 <header>
-  <div class="logo">SABOR <span>+58</span></div>
-  <div class="header-btns">
-    <button class="btn-header secundario" onclick="abrirHistorial()">📊 Historial</button>
-    <button class="btn-header" onclick="abrirPedidos()">
-      📋 Pedidos <span class="badge" id="badge-pedidos">0</span>
-    </button>
+  <div class="header-top">
+    <div class="logo">SABOR <span>+58</span></div>
+    <div class="header-btns">
+      <button class="btn-header secundario" onclick="abrirHistorial()">📊 Historial</button>
+      <button class="btn-header" onclick="abrirPedidos()">
+        📋 Pedidos <span class="badge" id="badge-pedidos">0</span>
+      </button>
+    </div>
   </div>
+  <nav class="app-tabs" aria-label="Secciones principales">
+    <button class="app-tab is-active" type="button" data-tab-target="pedidos">Pedidos</button>
+    <button class="app-tab" type="button" data-tab-target="gastos">Gastos</button>
+    <button class="app-tab" type="button" data-tab-target="dashboard">Dashboard</button>
+  </nav>
 </header>
 
+<section class="tab-panel is-active" data-tab-panel="pedidos">
 <div class="status-bar" id="status-bar">
   <span><span class="status-dot" id="status-dot"></span><span id="status-txt">Conectando...</span></span>
   <span>Activos: <strong id="txt-activos">0</strong></span>
@@ -419,25 +849,6 @@
       </div>
       <button class="btn-confirmar" id="btn-guardar" onclick="confirmarPedido()">✅ Guardar pedido</button>
       <button class="btn-limpiar" onclick="limpiarCarrito()">✕ Limpiar carrito</button>
-
-      <details class="gasto-card">
-        <summary>💸 Registrar gasto</summary>
-        <div class="gasto-grid">
-          <input class="pedido-campo" id="gasto-categoria" type="text" placeholder="Categoría del gasto" maxlength="40"/>
-          <input class="pedido-campo" id="gasto-descripcion" type="text" placeholder="Descripción del gasto" maxlength="120"/>
-          <input class="pedido-campo" id="gasto-monto" type="number" placeholder="Monto" min="0" step="1"/>
-          <select class="pedido-campo" id="gasto-metodo-pago">
-            <option value="">Método de pago</option>
-            <option value="Efectivo">Efectivo</option>
-            <option value="Transferencia">Transferencia</option>
-            <option value="Nequi">Nequi</option>
-            <option value="Daviplata">Daviplata</option>
-          </select>
-        </div>
-        <button class="btn-confirmar gasto-btn" id="btn-guardar-gasto" type="button" onclick="enviarGasto()">
-          ✅ Guardar gasto
-        </button>
-      </details>
     </div>
   </div>
 </div>
@@ -479,6 +890,184 @@
 
 <div class="toast" id="toast"></div>
 
+</section>
+
+<section class="tab-panel" data-tab-panel="gastos">
+  <div class="page-shell gasto-page">
+    <div class="page-head gasto-head">
+      <div>
+        <span class="section-pill section-pill-gastos">Control de egresos</span>
+        <h2>Registro de gastos</h2>
+        <p>Clasifica cada compra y manten la caja ordenada con un registro rapido y legible.</p>
+      </div>
+    </div>
+
+    <div class="gasto-layout">
+      <article class="gasto-card gasto-card-form">
+        <div class="gasto-card-head">
+          <div>
+            <h3>Nuevo gasto</h3>
+            <p>Registro manual rápido para gastos puntuales.</p>
+          </div>
+          <div class="gasto-sync-pill">Google Sheets</div>
+        </div>
+
+        <div class="gasto-grid">
+          <div class="pedido-opcion full">
+            <label for="gasto-categoria">Categoría</label>
+            <select class="pedido-campo" id="gasto-categoria">
+              <option value="">Selecciona una categoría</option>
+              <option value="Insumos">Insumos</option>
+              <option value="Servicios">Servicios</option>
+              <option value="Varios">Varios</option>
+            </select>
+          </div>
+          <div class="pedido-opcion full">
+            <label for="gasto-descripcion">Descripción</label>
+            <input class="pedido-campo" id="gasto-descripcion" type="text" placeholder="Ej: Gas, queso, empaque" maxlength="120"/>
+          </div>
+          <div class="pedido-opcion">
+            <label for="gasto-monto">Monto</label>
+            <input class="pedido-campo" id="gasto-monto" type="number" placeholder="0" min="0" step="1"/>
+          </div>
+          <div class="pedido-opcion">
+            <label for="gasto-metodo-pago">Método de pago</label>
+            <select class="pedido-campo" id="gasto-metodo-pago">
+              <option value="">Selecciona</option>
+              <option value="Efectivo">Efectivo</option>
+              <option value="Transferencia">Transferencia</option>
+              <option value="Nequi">Nequi</option>
+              <option value="Daviplata">Daviplata</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="gasto-actions">
+          <button class="btn-confirmar gasto-btn" id="btn-guardar-gasto" type="button" onclick="enviarGasto()">✅ Guardar gasto</button>
+          <button class="btn-limpiar" type="button" onclick="limpiarCamposGasto()">✕ Limpiar campos</button>
+        </div>
+      </article>
+
+      <div class="gasto-aside">
+        <article class="gasto-card gasto-card-side">
+          <h3>Cómo clasificar</h3>
+          <div class="gasto-guide-list">
+            <div class="gasto-guide-item">
+              <span class="gasto-guide-label">Insumos</span>
+              <p>Materia prima, empaque, ingredientes y compras del día a día.</p>
+            </div>
+            <div class="gasto-guide-item">
+              <span class="gasto-guide-label">Servicios</span>
+              <p>Gas, internet, domicilios, plataformas y pagos operativos.</p>
+            </div>
+            <div class="gasto-guide-item">
+              <span class="gasto-guide-label">Varios</span>
+              <p>Imprevistos, ajustes pequeños y gastos que no entran en las otras categorías.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="gasto-card gasto-card-note">
+          <h3>Buenas prácticas</h3>
+          <ul class="gasto-tip-list">
+            <li>Escribe descripciones cortas y claras.</li>
+            <li>Selecciona el método de pago real.</li>
+            <li>Registra el gasto al momento para evitar descuadres.</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+
+    <div class="gasto-layout gasto-layout-carrito">
+      <article class="gasto-card gasto-catalog-card">
+        <div class="gasto-card-head">
+          <div>
+            <h3>Catálogo de insumos</h3>
+            <p>La lista se carga desde <code>Catalogo_Insumos</code> y se actualiza sin tocar el código.</p>
+          </div>
+          <div class="gasto-sync-pill" id="gasto-catalog-status">Cargando...</div>
+        </div>
+
+        <div class="gasto-catalog-toolbar">
+          <div class="pedido-opcion full">
+            <label for="gasto-catalogo-categoria">Categoría</label>
+            <select class="pedido-campo" id="gasto-catalogo-categoria">
+              <option value="">Cargando catálogo...</option>
+            </select>
+          </div>
+          <div class="gasto-catalog-summary">
+            <span id="gasto-catalogo-count">0 productos</span>
+          </div>
+        </div>
+
+        <div class="gasto-productos-grid" id="gasto-productos-grid"></div>
+        <div class="gasto-productos-empty" id="gasto-productos-empty" hidden>
+          No hay productos para esta categoría.
+        </div>
+      </article>
+
+      <article class="gasto-card gasto-cart-card">
+        <div class="gasto-card-head">
+          <div>
+            <h3>Carrito de gastos</h3>
+            <p>Modifica cantidad y precio antes de registrar la compra.</p>
+          </div>
+          <div class="gasto-sync-pill"><span id="gasto-carrito-count">0</span> líneas</div>
+        </div>
+
+        <div class="gasto-cart-hint">
+          Se guarda automáticamente en este navegador hasta que presiones <strong>Registrar Compra</strong>.
+        </div>
+
+        <div id="gasto-carrito-list" class="gasto-cart-list"></div>
+        <div id="gasto-carrito-empty" class="gasto-cart-empty">Aún no has agregado productos.</div>
+
+        <div class="gasto-cart-footer">
+          <div class="gasto-cart-total-box">
+            <span>Total estimado</span>
+            <strong id="gasto-carrito-total">$0</strong>
+          </div>
+
+          <div class="gasto-cart-payment">
+            <label for="gasto-compra-metodo-pago">Método de pago</label>
+            <select class="pedido-campo" id="gasto-compra-metodo-pago">
+              <option value="">Selecciona</option>
+              <option value="Efectivo">Efectivo</option>
+              <option value="Transferencia">Transferencia</option>
+              <option value="Nequi">Nequi</option>
+              <option value="Daviplata">Daviplata</option>
+            </select>
+          </div>
+
+          <div class="gasto-actions gasto-actions-cart">
+            <button class="btn-limpiar" type="button" id="btn-vaciar-gasto-carrito">Vaciar carrito</button>
+            <button class="btn-confirmar gasto-btn" type="button" id="btn-registrar-compra">Registrar Compra</button>
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="tab-panel" data-tab-panel="dashboard">
+  <div class="page-shell">
+    <div class="page-head">
+      <h2>Dashboard financiero</h2>
+      <p>Vista general de ventas, egresos y desempeño.</p>
+    </div>
+    <article class="dashboard-card">
+      <iframe
+        class="dashboard-frame"
+        src="https://datastudio.google.com/reporting/9e21dc7e-4694-47cb-b771-e675e4f5094c"
+        width="100%"
+        height="600px"
+        loading="lazy"
+        title="Dashboard financiero Sabor +58"
+      ></iframe>
+    </article>
+  </div>
+</section>
+
 <script>
 const API = window.location.origin + '/api';
 const GOOGLE_SHEETS_PROXY_URL = `${API}/google-sheets`;
@@ -486,11 +1075,16 @@ const MOBILE_BREAKPOINT = 900;
 
 const MENU = [
   { categoria:"🟡 Arepas Venezolanas", productos:[
-    {id:"a1",emoji:"🫓",nombre:"Arepa Dominó",     desc:"Caraotas negras + queso blanco",         precio:8000},
-    {id:"a2",emoji:"🫓",nombre:"Arepa La Pelúa",   desc:"Carne mechada + queso + aguacate",        precio:12000},
-    {id:"a3",emoji:"🫓",nombre:"Reina Pepiada",    desc:"Pollo + mayonesa + aguacate",             precio:12000},
-    {id:"a4",emoji:"🫓",nombre:"Arepa Pabellón",   desc:"Mechada + caraotas + plátano + queso",    precio:12000},
-    {id:"a5",emoji:"⭐",nombre:"Arepa de la Casa", desc:"Carne al barril + queso + aguacate",      precio:13000},
+    {id:"a1",emoji:"🫓",nombre:"Arepa Dominó",                 desc:"Caraotas negras + queso blanco rallado + aguacate",                 precio:10000},
+    {id:"a2",emoji:"🫓",nombre:"Arepa La Pelúa (Costeño)",     desc:"Carne desmechada + queso costeño + aguacate",                      precio:14000},
+    {id:"a3",emoji:"🫓",nombre:"Arepa La Pelúa (Mozzarella)",   desc:"Carne desmechada + queso mozzarella + aguacate",                   precio:15000},
+    {id:"a4",emoji:"🫓",nombre:"Arepa Reina Pepiada (Costeño)", desc:"Pollo desmechado + aguacate + mayonesa + queso costeño",           precio:14000},
+    {id:"a5",emoji:"🫓",nombre:"Arepa Reina Pepiada (Mozzarella)",desc:"Pollo desmechado + aguacate + mayonesa + queso mozzarella",      precio:15000},
+    {id:"a6",emoji:"🫓",nombre:"Arepa de Chicharrón",          desc:"Chicharrón + maduro + queso costeño + aguacate",                   precio:14000},
+    {id:"a7",emoji:"🫓",nombre:"Arepa Pabellón (Costeño)",      desc:"Carne mechada + caraotas negras + plátano maduro + queso costeño", precio:15000},
+    {id:"a8",emoji:"🫓",nombre:"Arepa Pabellón (Mozzarella)",    desc:"Carne mechada + caraotas negras + plátano maduro + queso mozzarella",precio:16000},
+    {id:"a9",emoji:"⭐",nombre:"Arepa de la Casa (Costeño)",     desc:"Carne al barril + queso costeño + aguacate",                       precio:15000},
+    {id:"a10",emoji:"⭐",nombre:"Arepa de la Casa (Mozzarella)", desc:"Carne al barril + queso mozzarella + aguacate",                    precio:16000},
   ]},
   { categoria:"🥤 Bebidas Personales", productos:[
     {id:"b1", emoji:"🥤",nombre:"Big Cola 400ml",       precio:2000},
@@ -518,14 +1112,19 @@ const MENU = [
     {id:"f6",emoji:"🥤",nombre:"Premium 1.5L",   precio:5500},
   ]},
   { categoria:"🌭 Perros Calientes", productos:[
-    {id:"p1",emoji:"🌭",nombre:"Perro Pequeño Sencillo",desc:"Papas + salchicha + ensalada + salsas + queso amarillo",precio:6000},
-    {id:"p2",emoji:"🌭",nombre:"Perro Grande Sencillo", desc:"Papas + salchicha + ensalada + salsas + queso amarillo",precio:9000},
-    {id:"p3",emoji:"🔥",nombre:"Perro Especial",        desc:"Papas + salchicha + jamón + mozzarella + tocineta + salsas + queso amarillo",precio:12000},
+    {id:"p1",emoji:"🌭",nombre:"Perro Pequeño Sencillo",   desc:"Papas + salchicha + ensalada + salsas + queso amarillo",                           precio:6000},
+    {id:"p2",emoji:"🌭",nombre:"Perro Grande Sencillo",    desc:"Papas + salchicha + ensalada + salsas + queso amarillo",                           precio:11000},
+    {id:"p3",emoji:"🔥",nombre:"Perro Especial",           desc:"Papas + salchicha + ensalada + jamón + queso mozzarella + tocineta + salsas + queso amarillo", precio:14000},
+    {id:"p4",emoji:"⭐",nombre:"Combo de Perros Clásico",   desc:"2 Perros Pequeños + gaseosa 250 ml",                                                  precio:12000},
+    {id:"p5",emoji:"🏠",nombre:"Perro de la Casa",         desc:"Papas + salchicha + ensalada + jamón + queso mozzarella + tocineta + salsas + queso amarillo + proteína a escoger", precio:19000},
+    {id:"p6",emoji:"⚡",nombre:"Perro Súper Especial",      desc:"Salchicha americana + ensalada + papas + queso mozzarella + jamón + tocineta + queso amarillo + salsas",  precio:19000},
   ]},
   { categoria:"🍔 Hamburguesas", productos:[
-    {id:"h1",emoji:"🍔",nombre:"Hamburguesa Sencilla",   desc:"Carne artesanal + lechuga + tomate + papas + salsas",precio:10000},
-    {id:"h2",emoji:"🔥",nombre:"Hamburguesa Especial",   desc:"Carne artesanal + lechuga + tomate + papas + jamón + huevo + mozzarella + tocineta + salsas",precio:15000},
-    {id:"h3",emoji:"⭐",nombre:"Hamburguesa de la Casa", desc:"Carne artesanal + pechuga + lechuga + tomate + papas + huevo + tocineta + jamón + queso + aguacate + mozzarella",precio:19000},
+    {id:"h1",emoji:"🍔",nombre:"Hamburguesa Sencilla",   desc:"Carne artesanal + lechuga + tomate + papas + salsas",                                                               precio:12000},
+    {id:"h2",emoji:"🔥",nombre:"Hamburguesa Especial",   desc:"Carne artesanal + lechuga + tomate + papas + jamón + huevo + queso mozzarella + tocineta + salsas",                 precio:17000},
+    {id:"h3",emoji:"⭐",nombre:"Hamburguesa de la Casa", desc:"Carne artesanal + pechuga + lechuga + tomate + papas + huevo + tocineta + jamón + queso mozzarella + aguacate + salsas", precio:22000},
+    {id:"h4",emoji:"🐷",nombre:"Hamburguesa Pig",        desc:"Carne artesanal + chuleta de cerdo ahumada + huevo + tocineta + jamón + queso mozzarella + lechuga + tomate + papas + salsas", precio:24000},
+    {id:"h5",emoji:"⚡",nombre:"Hamburguesa Trifásica",   desc:"Carne artesanal + pollo + chuleta de cerdo ahumada o carne al barril + huevo + tocineta + jamón + queso mozzarella + lechuga + tomate + papas + salsas", precio:30000},
   ]},
   { categoria:"➕ Adicionales", productos:[
     {id:"ad1",emoji:"🥩",nombre:"Carne al Barril",desc:"Porción adicional",precio:7000},
@@ -547,6 +1146,41 @@ const gastoDescripcionInput = document.getElementById('gasto-descripcion');
 const gastoMontoInput = document.getElementById('gasto-monto');
 const gastoMetodoPagoSelect = document.getElementById('gasto-metodo-pago');
 const gastoButton = document.getElementById('btn-guardar-gasto');
+const GASTO_CART_STORAGE_KEY = 'sabor58:gasto-carrito-v1';
+const GASTO_CART_PAYMENT_KEY = 'sabor58:gasto-carrito-metodo-v1';
+const gastoCatalogoCategoriaSelect = document.getElementById('gasto-catalogo-categoria');
+const gastoCatalogoCount = document.getElementById('gasto-catalogo-count');
+const gastoCatalogoStatus = document.getElementById('gasto-catalog-status');
+const gastoProductosGrid = document.getElementById('gasto-productos-grid');
+const gastoProductosEmpty = document.getElementById('gasto-productos-empty');
+const gastoCarritoList = document.getElementById('gasto-carrito-list');
+const gastoCarritoEmpty = document.getElementById('gasto-carrito-empty');
+const gastoCarritoCount = document.getElementById('gasto-carrito-count');
+const gastoCarritoTotal = document.getElementById('gasto-carrito-total');
+const gastoCompraMetodoPagoSelect = document.getElementById('gasto-compra-metodo-pago');
+const gastoVaciarCarritoButton = document.getElementById('btn-vaciar-gasto-carrito');
+const gastoRegistrarCompraButton = document.getElementById('btn-registrar-compra');
+const tabButtons = Array.from(document.querySelectorAll('[data-tab-target]'));
+const tabPanels = Array.from(document.querySelectorAll('[data-tab-panel]'));
+
+let catalogoInsumos = [];
+let gastoCarrito = cargarGastoCarritoLocalStorage();
+let catalogoLoadPromise = null;
+let catalogoLoaded = false;
+
+const CATALOGO_FALLBACK = [
+  { categoria: 'Comida', producto: 'Paq Perro Pequeño', unidad: 'Paquete x10', precioReferencia: 8000 },
+  { categoria: 'Comida', producto: 'Paq Perro Grande', unidad: 'Paquete x10', precioReferencia: 12000 },
+  { categoria: 'Comida', producto: 'Paq Hamburguesa Grande', unidad: 'Paquete x12', precioReferencia: 15000 },
+  { categoria: 'Comida', producto: 'Tocineta', unidad: 'Kilo', precioReferencia: 25000 },
+  { categoria: 'Comida', producto: 'Queso Mozzarella', unidad: 'Kilo', precioReferencia: 22000 },
+  { categoria: 'Comida', producto: 'Envases de Salsa', unidad: 'Ciento', precioReferencia: 5000 },
+  { categoria: 'Arepas', producto: 'Harina', unidad: 'Kilo', precioReferencia: 4500 },
+  { categoria: 'Arepas', producto: 'Carne de Res', unidad: 'Kilo', precioReferencia: 28000 },
+  { categoria: 'Arepas', producto: 'Queso Costeño', unidad: 'Kilo', precioReferencia: 20000 },
+  { categoria: 'Servicios', producto: 'Gas', unidad: 'Mensual', precioReferencia: 60000 },
+  { categoria: 'Servicios', producto: 'Papel para envolver', unidad: 'Paquete', precioReferencia: 12000 },
+];
 
 const fmt = n => '$' + n.toLocaleString('es-CO');
 
@@ -691,6 +1325,443 @@ async function enviarGasto() {
   if (gastoButton) {
     gastoButton.disabled = false;
     gastoButton.textContent = '✅ Guardar gasto';
+  }
+}
+
+function setActiveTab(tabName, updateHash = true) {
+  const nextTab = ['pedidos', 'gastos', 'dashboard'].includes(tabName) ? tabName : 'pedidos';
+
+  tabButtons.forEach((button) => {
+    const isActive = button.dataset.tabTarget === nextTab;
+    button.classList.toggle('is-active', isActive);
+    button.setAttribute('aria-pressed', String(isActive));
+  });
+
+  tabPanels.forEach((panel) => {
+    panel.classList.toggle('is-active', panel.dataset.tabPanel === nextTab);
+  });
+
+  if (nextTab === 'gastos') {
+    void cargarCatalogoInsumos();
+  }
+
+  if (updateHash) {
+    history.replaceState(null, '', `#${nextTab}`);
+  }
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  return nextTab;
+}
+
+function getInitialTab() {
+  const hash = String(window.location.hash || '').replace('#', '').trim();
+  return ['pedidos', 'gastos', 'dashboard'].includes(hash) ? hash : 'pedidos';
+}
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function parseNumberLoose(value) {
+  if (value === undefined || value === null || value === '') {
+    return 0;
+  }
+
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+
+  const text = String(value).trim();
+  if (!text) {
+    return 0;
+  }
+
+  const normalized = text.replace(/\s/g, '').replace(/\./g, '').replace(/,/g, '.');
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function slugifyText(value) {
+  return String(value ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'item';
+}
+
+function crearCatalogoId(item, index = 0) {
+  return slugifyText(`${item.categoria || ''}-${item.producto || ''}-${item.unidad || ''}-${index}`);
+}
+
+function normalizarCatalogoItem(item, index = 0) {
+  const categoria = String(item?.categoria ?? item?.Categoría ?? item?.Categoria ?? '').trim();
+  const producto = String(item?.producto ?? item?.Producto ?? item?.nombre ?? '').trim();
+  const unidad = String(item?.unidad ?? item?.Unidad ?? '').trim();
+  const precioReferencia = parseNumberLoose(item?.precioReferencia ?? item?.Precio_Referencia ?? item?.precio_referencia ?? item?.precioRef ?? item?.precio ?? 0);
+
+  if (!categoria || !producto) {
+    return null;
+  }
+
+  return {
+    id: String(item?.id ?? crearCatalogoId({ categoria, producto, unidad }, index)),
+    categoria,
+    producto,
+    unidad,
+    precioReferencia,
+  };
+}
+
+function normalizarCarritoGastoItem(item, index = 0) {
+  const categoria = String(item?.categoria ?? '').trim();
+  const producto = String(item?.producto ?? '').trim();
+  const unidad = String(item?.unidad ?? '').trim();
+  if (!categoria || !producto) {
+    return null;
+  }
+
+  const precioReferencia = parseNumberLoose(item?.precioReferencia ?? item?.precio_referencia ?? 0);
+  const precioFinalBase = parseNumberLoose(item?.precioFinal ?? item?.precio_final ?? item?.precio ?? precioReferencia);
+  const precioFinal = precioFinalBase > 0 ? precioFinalBase : precioReferencia;
+  const cantidad = Math.max(1, Math.round(parseNumberLoose(item?.cantidad ?? item?.qty ?? 1)) || 1);
+
+  return {
+    id: String(item?.id ?? crearCatalogoId({ categoria, producto, unidad }, index)),
+    categoria,
+    producto,
+    unidad,
+    precioReferencia,
+    precioFinal,
+    cantidad,
+  };
+}
+
+function cargarGastoCarritoLocalStorage() {
+  try {
+    const raw = localStorage.getItem(GASTO_CART_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map((item, index) => normalizarCarritoGastoItem(item, index)).filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+function guardarGastoCarritoLocalStorage() {
+  try {
+    localStorage.setItem(GASTO_CART_STORAGE_KEY, JSON.stringify(gastoCarrito));
+  } catch {}
+}
+
+function cargarMetodoPagoCompraGastoLocalStorage() {
+  try {
+    return localStorage.getItem(GASTO_CART_PAYMENT_KEY) || '';
+  } catch {
+    return '';
+  }
+}
+
+function guardarMetodoPagoCompraGastoLocalStorage(value) {
+  try {
+    const texto = String(value ?? '').trim();
+    if (texto) localStorage.setItem(GASTO_CART_PAYMENT_KEY, texto);
+    else localStorage.removeItem(GASTO_CART_PAYMENT_KEY);
+  } catch {}
+}
+
+function obtenerTotalGastoCarrito() {
+  return gastoCarrito.reduce((suma, item) => suma + (item.cantidad * item.precioFinal), 0);
+}
+
+function actualizarResumenGastoCarrito() {
+  if (gastoCarritoCount) gastoCarritoCount.textContent = String(gastoCarrito.length);
+  if (gastoCarritoTotal) gastoCarritoTotal.textContent = fmt(obtenerTotalGastoCarrito());
+  if (gastoVaciarCarritoButton) gastoVaciarCarritoButton.disabled = gastoCarrito.length === 0;
+  if (gastoRegistrarCompraButton) gastoRegistrarCompraButton.disabled = gastoCarrito.length === 0;
+}
+
+function renderCatalogoCategorias() {
+  if (!gastoCatalogoCategoriaSelect) return;
+
+  const categoriaActual = gastoCatalogoCategoriaSelect.value;
+  const categorias = Array.from(new Set(catalogoInsumos.map((item) => item.categoria).filter(Boolean)));
+
+  gastoCatalogoCategoriaSelect.innerHTML = [
+    '<option value="">Todas las categorías</option>',
+    ...categorias.map((categoria) => `<option value="${escapeHtml(categoria)}">${escapeHtml(categoria)}</option>`),
+  ].join('');
+
+  if (categoriaActual && categorias.includes(categoriaActual)) {
+    gastoCatalogoCategoriaSelect.value = categoriaActual;
+  } else {
+    gastoCatalogoCategoriaSelect.value = '';
+  }
+}
+
+function usarCatalogoFallback(motivo = '') {
+  catalogoInsumos = CATALOGO_FALLBACK.map((item, index) => normalizarCatalogoItem(item, index)).filter(Boolean);
+  catalogoLoaded = true;
+  if (gastoCatalogoStatus) gastoCatalogoStatus.textContent = motivo ? `Catálogo base · ${motivo}` : 'Catálogo base';
+  renderCatalogoCategorias();
+  renderCatalogoProductos();
+}
+
+function renderCatalogoProductos() {
+  if (!gastoProductosGrid || !gastoProductosEmpty) return;
+
+  gastoProductosEmpty.textContent = 'No hay productos para esta categoría.';
+
+  const categoriaSeleccionada = gastoCatalogoCategoriaSelect?.value || '';
+  const productos = categoriaSeleccionada
+    ? catalogoInsumos.filter((item) => item.categoria === categoriaSeleccionada)
+    : catalogoInsumos;
+
+  if (gastoCatalogoCount) {
+    const totalTexto = `${productos.length} producto${productos.length === 1 ? '' : 's'}`;
+    gastoCatalogoCount.textContent = categoriaSeleccionada ? `${totalTexto} en ${categoriaSeleccionada}` : `${totalTexto} cargados`;
+  }
+
+  if (!productos.length) {
+    gastoProductosGrid.innerHTML = '';
+    gastoProductosEmpty.hidden = false;
+    return;
+  }
+
+  gastoProductosEmpty.hidden = true;
+  gastoProductosGrid.innerHTML = productos.map((item) => `
+    <button class="gasto-producto-card" type="button" onclick="agregarProductoCatalogo('${escapeHtml(item.id)}')">
+      <span class="gasto-producto-chip">${escapeHtml(item.categoria)}</span>
+      <div class="gasto-producto-nombre">${escapeHtml(item.producto)}</div>
+      <div class="gasto-producto-meta">
+        <span>Unidad: ${escapeHtml(item.unidad || 'N/D')}</span>
+        <span>Referencia: ${fmt(item.precioReferencia)}</span>
+      </div>
+      <div class="gasto-producto-precio">${fmt(item.precioReferencia)}</div>
+      <span class="gasto-producto-cta">Agregar al carrito</span>
+    </button>
+  `).join('');
+}
+
+function calcularSubtotalGastoItem(item) {
+  return Math.max(0, Number(item.cantidad || 0) * Number(item.precioFinal || 0));
+}
+
+function renderGastoCarrito() {
+  if (!gastoCarritoList || !gastoCarritoEmpty) return;
+
+  if (!gastoCarrito.length) {
+    gastoCarritoList.innerHTML = '';
+    gastoCarritoEmpty.hidden = false;
+    actualizarResumenGastoCarrito();
+    return;
+  }
+
+  gastoCarritoEmpty.hidden = true;
+  gastoCarritoList.innerHTML = gastoCarrito.map((item) => `
+    <div class="gasto-cart-item" data-gasto-item-id="${escapeHtml(item.id)}">
+      <div class="gasto-cart-item-head">
+        <div>
+          <div class="gasto-cart-item-title">${escapeHtml(item.producto)}</div>
+          <div class="gasto-cart-item-meta">${escapeHtml(item.categoria)} · ${escapeHtml(item.unidad || 'N/D')}</div>
+        </div>
+        <button class="gasto-cart-remove" type="button" onclick="eliminarGastoCarrito('${escapeHtml(item.id)}')">✕</button>
+      </div>
+
+      <div class="gasto-cart-controls">
+        <label class="gasto-cart-control">
+          <span>Cantidad</span>
+          <input class="gasto-cart-input" type="number" min="1" step="1" value="${escapeHtml(item.cantidad)}" oninput="actualizarCantidadGastoCarrito('${escapeHtml(item.id)}', this.value)" />
+        </label>
+        <label class="gasto-cart-control">
+          <span>Precio final</span>
+          <input class="gasto-cart-input" type="number" min="0" step="1" value="${escapeHtml(item.precioFinal)}" oninput="actualizarPrecioGastoCarrito('${escapeHtml(item.id)}', this.value)" />
+        </label>
+      </div>
+
+      <div class="gasto-cart-footer-line">
+        <span>Ref: ${fmt(item.precioReferencia)}</span>
+        <strong id="gasto-cart-subtotal-${escapeHtml(item.id)}">${fmt(calcularSubtotalGastoItem(item))}</strong>
+      </div>
+    </div>
+  `).join('');
+
+  actualizarResumenGastoCarrito();
+}
+
+function agregarProductoCatalogo(id) {
+  const producto = catalogoInsumos.find((item) => item.id === id);
+  if (!producto) return;
+
+  const existente = gastoCarrito.find((item) => item.id === id);
+  if (existente) {
+    existente.cantidad += 1;
+    if (existente.precioFinal === undefined || existente.precioFinal === null || existente.precioFinal === '') {
+      existente.precioFinal = producto.precioReferencia;
+    }
+  } else {
+    gastoCarrito.push(normalizarCarritoGastoItem({
+      id: producto.id,
+      categoria: producto.categoria,
+      producto: producto.producto,
+      unidad: producto.unidad,
+      precioReferencia: producto.precioReferencia,
+      precioFinal: producto.precioReferencia,
+      cantidad: 1,
+    }));
+  }
+
+  guardarGastoCarritoLocalStorage();
+  renderGastoCarrito();
+  mostrarToast(`+ ${producto.producto}`);
+}
+
+function actualizarCantidadGastoCarrito(id, valor) {
+  const item = gastoCarrito.find((entry) => entry.id === id);
+  if (!item) return;
+
+  const cantidad = Math.max(1, Math.round(parseNumberLoose(valor)) || 1);
+  item.cantidad = cantidad;
+  guardarGastoCarritoLocalStorage();
+
+  const subtotalEl = document.getElementById(`gasto-cart-subtotal-${id}`);
+  if (subtotalEl) subtotalEl.textContent = fmt(calcularSubtotalGastoItem(item));
+
+  actualizarResumenGastoCarrito();
+}
+
+function actualizarPrecioGastoCarrito(id, valor) {
+  const item = gastoCarrito.find((entry) => entry.id === id);
+  if (!item) return;
+
+  const precioFinal = Math.max(0, Math.round(parseNumberLoose(valor)) || 0);
+  item.precioFinal = precioFinal;
+  guardarGastoCarritoLocalStorage();
+
+  const subtotalEl = document.getElementById(`gasto-cart-subtotal-${id}`);
+  if (subtotalEl) subtotalEl.textContent = fmt(calcularSubtotalGastoItem(item));
+
+  actualizarResumenGastoCarrito();
+}
+
+function eliminarGastoCarrito(id) {
+  gastoCarrito = gastoCarrito.filter((item) => item.id !== id);
+  guardarGastoCarritoLocalStorage();
+  renderGastoCarrito();
+}
+
+function vaciarGastoCarrito(shouldToast = true) {
+  gastoCarrito = [];
+  guardarGastoCarritoLocalStorage();
+  renderGastoCarrito();
+  if (shouldToast) mostrarToast('🧺 Carrito vaciado');
+}
+
+async function cargarCatalogoInsumos(force = false) {
+  if (catalogoLoaded && !force) {
+    renderCatalogoCategorias();
+    renderCatalogoProductos();
+    return catalogoInsumos;
+  }
+
+  if (catalogoLoadPromise && !force) {
+    return catalogoLoadPromise;
+  }
+
+  if (gastoCatalogoStatus) gastoCatalogoStatus.textContent = 'Sincronizando...';
+
+  catalogoLoadPromise = (async () => {
+    try {
+      const response = await fetch(`${GOOGLE_SHEETS_PROXY_URL}?action=catalogo`);
+      const text = await response.text();
+      let payload;
+
+      try {
+        payload = text ? JSON.parse(text) : {};
+      } catch {
+        payload = { raw: text };
+      }
+
+      if (!response.ok || payload.ok === false) {
+        throw new Error(payload.error || `No se pudo cargar el catálogo (${response.status})`);
+      }
+
+      const items = Array.isArray(payload.items) ? payload.items : Array.isArray(payload.catalogo) ? payload.catalogo : [];
+      catalogoInsumos = items.map((item, index) => normalizarCatalogoItem(item, index)).filter(Boolean);
+
+      if (!catalogoInsumos.length) {
+        usarCatalogoFallback('sin datos remotos');
+        return catalogoInsumos;
+      }
+
+      catalogoLoaded = true;
+      if (gastoCatalogoStatus) gastoCatalogoStatus.textContent = 'Catálogo listo';
+      renderCatalogoCategorias();
+      renderCatalogoProductos();
+      return catalogoInsumos;
+    } catch (error) {
+      usarCatalogoFallback('sin conexión');
+      console.error('[Catálogo de insumos] error:', error);
+      return catalogoInsumos;
+    } finally {
+      catalogoLoadPromise = null;
+    }
+  })();
+
+  return catalogoLoadPromise;
+}
+
+async function registrarCompraGastos() {
+  if (!gastoCarrito.length) {
+    mostrarToast('El carrito está vacío');
+    return;
+  }
+
+  const metodoPago = gastoCompraMetodoPagoSelect?.value.trim() || '';
+  const fecha = fechaHoy();
+  const hora = new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+
+  const datos = {
+    tipoEntrada: 'gasto_carrito',
+    metodoPago,
+    fecha,
+    hora,
+    items: gastoCarrito.map((item) => ({
+      categoria: item.categoria,
+      producto: item.producto,
+      unidad: item.unidad,
+      precioReferencia: item.precioReferencia,
+      precioFinal: item.precioFinal,
+      cantidad: item.cantidad,
+      monto: calcularSubtotalGastoItem(item),
+    })),
+  };
+
+  if (gastoRegistrarCompraButton) {
+    gastoRegistrarCompraButton.disabled = true;
+    gastoRegistrarCompraButton.textContent = 'Registrando...';
+  }
+
+  const resultado = await enviarAProxySheets(datos);
+
+  if (resultado.ok) {
+    vaciarGastoCarrito(false);
+    if (gastoCompraMetodoPagoSelect) gastoCompraMetodoPagoSelect.value = '';
+    guardarMetodoPagoCompraGastoLocalStorage('');
+    mostrarToast(`✅ Compra registrada (${datos.items.length} líneas)`);
+  } else {
+    mostrarToast('⚠️ No se pudo registrar la compra');
+  }
+
+  if (gastoRegistrarCompraButton) {
+    gastoRegistrarCompraButton.disabled = gastoCarrito.length === 0;
+    gastoRegistrarCompraButton.textContent = 'Registrar Compra';
   }
 }
 
@@ -1136,9 +2207,25 @@ renderMenu();
 verificarServidor();
 setInterval(verificarServidor, 30000); // Re-chequear cada 30s
 actualizarFabCarrito();
+renderGastoCarrito();
+if (gastoCompraMetodoPagoSelect) {
+  gastoCompraMetodoPagoSelect.value = cargarMetodoPagoCompraGastoLocalStorage();
+}
+setActiveTab(getInitialTab(), false);
+
+gastoCatalogoCategoriaSelect?.addEventListener('change', renderCatalogoProductos);
+gastoCompraMetodoPagoSelect?.addEventListener('change', (event) => guardarMetodoPagoCompraGastoLocalStorage(event.target.value));
+gastoVaciarCarritoButton?.addEventListener('click', () => vaciarGastoCarrito());
+gastoRegistrarCompraButton?.addEventListener('click', () => { void registrarCompraGastos(); });
+void cargarCatalogoInsumos();
+
+tabButtons.forEach((button) => {
+  button.addEventListener('click', () => setActiveTab(button.dataset.tabTarget));
+});
 
 cartFab?.addEventListener('click', () => toggleCarritoMobile(true));
 cartBackdrop?.addEventListener('click', () => toggleCarritoMobile(false));
+window.addEventListener('hashchange', () => setActiveTab(getInitialTab(), false));
 window.addEventListener('resize', () => {
   if (!esVistaMovil()) resetCarritoMobile();
 });
